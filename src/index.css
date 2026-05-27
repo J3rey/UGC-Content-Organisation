@@ -1,0 +1,4 @@
+:root { color-scheme: light; }
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { font-family: system-ui, sans-serif; background: #fdf6e3; color: #1a1a1a; }
