@@ -5,8 +5,8 @@ import HookList from './HookList.jsx'
 
 export default function VideoCard({
   video, pillars, sortable,
-  onOpenIdea, onUpdateVideo, onDeleteVideo,
-  onAddHook, onOpenHook, onDeleteHook,
+  onOpenScript, onUpdateVideo, onDeleteVideo,
+  onAddHook, onUpdateHook, onDeleteHook,
 }) {
   const [open, setOpen] = useState(false)
   const {
@@ -28,7 +28,7 @@ export default function VideoCard({
         {sortable && (
           <button className="drag-handle" {...attributes} {...listeners} aria-label="Reorder">⠿</button>
         )}
-        <button className="card-title" onClick={() => onOpenIdea(video.id)}>
+        <button className="card-title" onClick={() => onOpenScript(video.id)} title="Open script">
           {video.idea || <span className="muted">Untitled</span>}
         </button>
         <select
@@ -68,7 +68,7 @@ export default function VideoCard({
       {open && (
         <HookList
           video={video}
-          onOpenHook={hookId => onOpenHook(video.id, hookId)}
+          onUpdateHook={(hookId, patch) => onUpdateHook(video.id, hookId, patch)}
           onAddHook={t => onAddHook(video.id, t)}
           onDeleteHook={hookId => onDeleteHook(video.id, hookId)}
         />

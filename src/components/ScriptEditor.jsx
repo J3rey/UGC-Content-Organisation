@@ -1,33 +1,29 @@
 import { useEffect } from 'react'
 import { createPortal } from 'react-dom'
 
-// Slide-over editor. The notepad is ALWAYS bound to the parent video's single
-// `script`. When opened from a hook, the top field edits that hook's text; when
-// opened from the idea, it edits the video's idea.
-export default function ScriptEditor({ video, hook, onChangeTitle, onChangeScript, onClose }) {
+// Slide-over editor for a video: rename the video at the top, write its script
+// below. The script is shared by all of the video's hooks.
+export default function ScriptEditor({ video, onChangeTitle, onChangeScript, onClose }) {
   useEffect(() => {
     function onKey(e) { if (e.key === 'Escape') onClose() }
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
   }, [onClose])
 
-  const titleValue = hook ? hook.text : video.idea
-  const kicker = hook ? 'Hook' : 'Idea'
-
   return createPortal(
     <div className="editor-overlay" onMouseDown={e => { if (e.target === e.currentTarget) onClose() }}>
       <aside className="editor-panel" onMouseDown={e => e.stopPropagation()}>
         <div className="editor-head">
-          <span className="editor-kicker">{kicker}</span>
+          <span className="editor-kicker">Video</span>
           <button className="btn-icon" onClick={onClose} aria-label="Close">✕</button>
         </div>
         <input
           className="editor-title"
-          value={titleValue}
-          placeholder={hook ? 'Hook line…' : 'Video idea…'}
+          value={video.idea}
+          placeholder="Video idea…"
           onChange={e => onChangeTitle(e.target.value)}
         />
-        <span className="editor-kicker">Script {hook ? '(shared by all hooks)' : ''}</span>
+        <span className="editor-kicker">Script</span>
         <textarea
           className="editor-script"
           value={video.script}

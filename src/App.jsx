@@ -58,8 +58,7 @@ function AddVideoRow({ pillars, onAdd }) {
 
 export default function App() {
   const [state, setState] = useLocalState()
-  const [view, setView] = useState('ideas')
-  const [editor, setEditor] = useState(null)      // { videoId, hookId|null } | null
+  const [editorVideoId, setEditorVideoId] = useState(null) // video id whose script is open, or null
   const [showPillars, setShowPillars] = useState(false)
 
   const sensors = useSensors(
@@ -81,7 +80,7 @@ export default function App() {
         postingOrder: s.postingOrder.filter(k => !removedKeys.has(k)),
       }
     })
-    if (editor?.videoId === id) setEditor(null)
+    if (editorVideoId === id) setEditorVideoId(null)
   }
   function addVideo(idea, pillarId, status) {
     setState(s => ({
@@ -156,27 +155,24 @@ export default function App() {
     }
   }
 
-  const editorVideo = editor ? state.videos.find(v => v.id === editor.videoId) : null
-  const editorHook = editor && editor.hookId ? editorVideo?.hooks.find(h => h.id === editor.hookId) : null
+  const editorVideo = editorVideoId ? state.videos.find(v => v.id === editorVideoId) : null
 
   const visible = state.videos.filter(v => state.filter === 'all' || v.pillarId === state.filter)
   const active = visible.filter(v => v.status !== 'Posted')
   const posted = visible.filter(v => v.status === 'Posted')
 
   const cardHandlers = {
-    onOpenIdea: id => setEditor({ videoId: id, hookId: null }),
+    onOpenScript: id => setEditorVideoId(id),
     onUpdateVideo: updateVideo,
     onDeleteVideo: deleteVideo,
     onAddHook: addHook,
-    onOpenHook: (vid, hid) => setEditor({ videoId: vid, hookId: hid }),
+    onUpdateHook: updateHook,
     onDeleteHook: deleteHook,
   }
 
   return (
     <div className="app">
       <Header
-        view={view}
-        setView={setView}
         pillars={state.pillars}
         filter={state.filter}
         setFilter={f => setState(s => ({ ...s, filter: f }))}
@@ -185,48 +181,47 @@ export default function App() {
         onImport={handleImport}
       />
 
-      <main className="main">
-        {view === 'ideas' ? (
-          <>
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragEnd={e => { if (e.over && e.active.id !== e.over.id) reorderVideos(e.active.id, e.over.id) }}
-            >
-              <SortableContext items={active.map(v => v.id)} strategy={verticalListSortingStrategy}>
-                <div className="cards">
-                  {active.map(v => (
-                    <SortableVideoCard key={v.id} video={v} pillars={state.pillars} {...cardHandlers} />
-                  ))}
-                </div>
-              </SortableContext>
-            </DndContext>
-
-            <AddVideoRow pillars={state.pillars} onAdd={addVideo} />
-
-            {posted.length > 0 && (
-              <div className="archive">
-                <div className="archive-label">Posted</div>
-                {posted.map(v => (
-                  <VideoCard key={v.id} video={v} pillars={state.pillars} sortable={null} {...cardHandlers} />
+      <main className="page">
+        <section className="ideas-col">
+          <div className="col-head">Ideas</div>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={e => { if (e.over && e.active.id !== e.over.id) reorderVideos(e.active.id, e.over.id) }}
+          >
+            <SortableContext items={active.map(v => v.id)} strategy={verticalListSortingStrategy}>
+              <div className="cards">
+                {active.map(v => (
+                  <SortableVideoCard key={v.id} video={v} pillars={state.pillars} {...cardHandlers} />
                 ))}
               </div>
-            )}
-          </>
-        ) : (
+            </SortableContext>
+          </DndContext>
+
+          <AddVideoRow pillars={state.pillars} onAdd={addVideo} />
+
+          {posted.length > 0 && (
+            <div className="archive">
+              <div className="archive-label">Posted</div>
+              {posted.map(v => (
+                <VideoCard key={v.id} video={v} pillars={state.pillars} sortable={null} {...cardHandlers} />
+              ))}
+            </div>
+          )}
+        </section>
+
+        <aside className="queue-col">
+          <div className="col-head">Posting Queue</div>
           <PostingQueue state={state} onReorder={setPostingOrder} onMarkPosted={markPosted} />
-        )}
+        </aside>
       </main>
 
-      {editor && editorVideo && (
+      {editorVideo && (
         <ScriptEditor
           video={editorVideo}
-          hook={editorHook}
-          onChangeTitle={val => editorHook
-            ? updateHook(editor.videoId, editor.hookId, { text: val })
-            : updateVideo(editor.videoId, { idea: val })}
-          onChangeScript={val => updateVideo(editor.videoId, { script: val })}
-          onClose={() => setEditor(null)}
+          onChangeTitle={val => updateVideo(editorVideo.id, { idea: val })}
+          onChangeScript={val => updateVideo(editorVideo.id, { script: val })}
+          onClose={() => setEditorVideoId(null)}
         />
       )}
 
