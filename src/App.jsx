@@ -72,7 +72,16 @@ export default function App() {
     setState(s => ({ ...s, videos: s.videos.map(v => v.id === id ? { ...v, ...patch } : v) }))
   }
   function deleteVideo(id) {
-    setState(s => ({ ...s, videos: s.videos.filter(v => v.id !== id) }))
+    setState(s => {
+      const video = s.videos.find(v => v.id === id)
+      const removedKeys = new Set([id, ...(video?.hooks.map(h => h.id) ?? [])])
+      return {
+        ...s,
+        videos: s.videos.filter(v => v.id !== id),
+        postingOrder: s.postingOrder.filter(k => !removedKeys.has(k)),
+      }
+    })
+    if (editor?.videoId === id) setEditor(null)
   }
   function addVideo(idea, pillarId, status) {
     setState(s => ({
