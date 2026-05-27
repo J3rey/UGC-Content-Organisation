@@ -60,6 +60,7 @@ export default function App() {
   const [state, setState] = useLocalState()
   const [editorVideoId, setEditorVideoId] = useState(null) // video id whose script is open, or null
   const [showPillars, setShowPillars] = useState(false)
+  const [archiveOpen, setArchiveOpen] = useState(false)
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -138,8 +139,21 @@ export default function App() {
     setState(s => ({ ...s, postingOrder: keys }))
   }
   function markPosted(entry) {
-    if (entry.hookId) updateHook(entry.videoId, entry.hookId, { posted: true })
-    else updateVideo(entry.videoId, { status: 'Posted' })
+    // Virtual entry (hookless Edited video): posting it posts the whole video.
+    if (!entry.hookId) {
+      updateVideo(entry.videoId, { status: 'Posted' })
+      return
+    }
+    // Mark the hook posted; if that was the last unposted hook, auto-post the video.
+    setState(s => ({
+      ...s,
+      videos: s.videos.map(v => {
+        if (v.id !== entry.videoId) return v
+        const hooks = v.hooks.map(h => h.id === entry.hookId ? { ...h, posted: true } : h)
+        const allPosted = hooks.length > 0 && hooks.every(h => h.posted)
+        return { ...v, hooks, status: allPosted ? 'Posted' : v.status }
+      }),
+    }))
   }
 
   // import/export
@@ -202,8 +216,10 @@ export default function App() {
 
           {posted.length > 0 && (
             <div className="archive">
-              <div className="archive-label">Posted</div>
-              {posted.map(v => (
+              <button className="archive-label" onClick={() => setArchiveOpen(o => !o)}>
+                {archiveOpen ? '▾' : '▸'} Posted ({posted.length})
+              </button>
+              {archiveOpen && posted.map(v => (
                 <VideoCard key={v.id} video={v} pillars={state.pillars} sortable={null} {...cardHandlers} />
               ))}
             </div>

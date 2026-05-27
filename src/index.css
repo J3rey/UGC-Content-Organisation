@@ -136,7 +136,8 @@ body {
 
 /* Archive */
 .archive { margin-top: 22px; }
-.archive-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 8px; }
+.archive-label { display: inline-flex; align-items: center; gap: 6px; border: none; background: transparent; cursor: pointer; font-family: inherit; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 8px; padding: 0; }
+.archive-label:hover { color: var(--ink); }
 .archive .card { margin-bottom: 10px; }
 
 /* Tags */
