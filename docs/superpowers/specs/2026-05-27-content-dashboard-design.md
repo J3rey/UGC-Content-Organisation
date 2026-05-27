@@ -21,6 +21,8 @@ a global posting queue) and a new visual identity.
    - **Sub-ideas = hooks**: a video holds several hook variations of the same video.
    - **Global posting queue**: one drag-reorderable list of every hook across all Edited
      videos, so near-identical hooks can be spaced apart.
+   - **Script notepad**: clicking a video idea or a hook opens an editor with an empty
+     notepad to write the script. Replaces the generic notes field.
 4. **Same-video visual marker**: each video has an identity color chip so duplicate-video
    hooks are obvious in the queue.
 5. New look: playful **neo-brutalist** — simple, minimalistic, fun, different.
@@ -55,10 +57,10 @@ Single state object, persisted to `localStorage`:
       pillarId,
       status,                         // 'Idea' | 'Scripted' | 'Filmed' | 'Edited' | 'Posted'
       refLink,                        // reference/inspiration URL (string, may be '')
-      notes,                          // free text
+      script,                         // the video's script (free text, written in the notepad)
       tagColorIdx,                    // video identity color index (VIDEO_COLORS)
       hooks: [
-        { id, text, posted }          // a hook = one posting variant of this video
+        { id, text, posted, script }  // a hook = one posting variant; has its own script
       ]
     }
   ],
@@ -84,17 +86,25 @@ A vertical stack of video cards. Active videos are drag-reorderable; videos with
 `Posted` collapse into an archive section at the bottom (like the original's archived posts).
 
 Each card shows:
-- **Title** (editable inline).
+- **Title** — clicking it opens the **script editor** for the video (see below).
 - **Pillar tag** — click to open a popover to change pillar.
 - **Status** dropdown (Idea → Scripted → Filmed → Edited → Posted).
 - **Video color chip** — the identity color; also visible in the queue.
 - **Delete** button.
 - **Reference link** — an input; renders as a clickable link (opens new tab) when set.
-- **Hooks** (expand/collapse): list of editable hook rows, an "add hook" affordance, and a
-  delete per hook.
-- **Notes** — auto-growing textarea.
+- **Hooks** (expand/collapse): list of hook rows + an "add hook" affordance and a delete per
+  hook. Clicking a hook's text opens the **script editor** for that hook.
 
 Add-video affordance at the bottom (idea + pillar + status), matching the original's add row.
+
+### Script editor
+
+A slide-over/modal opened by clicking a video idea or a hook. It contains:
+- An editable text field at the top — the video's idea (or the hook's text).
+- A large empty **notepad** textarea below for writing the script.
+- Edits save to the item's `script` (and to `idea`/hook `text`) on change/blur; close to dismiss.
+
+The same component serves both videos and hooks; it operates on whichever item is open.
 
 ### Queue view (global posting queue)
 
@@ -122,7 +132,7 @@ Behavior:
   download), `importFromFile(file)` (parse + validate, returns state). Import replaces current
   state after a confirm.
 - Seed data: the original sample pillars and a handful of videos converted to the new shape
-  (each gets `refLink: ''`, `hooks: []`, an assigned `tagColorIdx`).
+  (each gets `refLink: ''`, `script: ''`, `hooks: []`, an assigned `tagColorIdx`).
 
 ## Pure logic (unit-tested)
 
@@ -157,8 +167,9 @@ src/
     contentModel.js          # pure helpers (unit-tested)
   components/
     Header.jsx               # title, view toggle, filter chips, manage pillars, export/import
-    VideoCard.jsx            # idea, pillar, status, refLink, notes, hooks, color chip
-    HookList.jsx             # editable hook rows + add hook
+    VideoCard.jsx            # idea, pillar, status, refLink, hooks, color chip
+    HookList.jsx             # hook rows (click to open script editor) + add hook
+    ScriptEditor.jsx         # slide-over notepad for a video idea or a hook
     PostingQueue.jsx         # global drag-reorderable queue
     PillarManagerModal.jsx   # add/delete pillars with colors
     Tag.jsx                  # pillar tag + video color chip primitives
