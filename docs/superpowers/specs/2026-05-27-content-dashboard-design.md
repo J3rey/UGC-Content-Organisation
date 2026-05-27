@@ -21,8 +21,9 @@ a global posting queue) and a new visual identity.
    - **Sub-ideas = hooks**: a video holds several hook variations of the same video.
    - **Global posting queue**: one drag-reorderable list of every hook across all Edited
      videos, so near-identical hooks can be spaced apart.
-   - **Script notepad**: clicking a video idea or a hook opens an editor with an empty
-     notepad to write the script. Replaces the generic notes field.
+   - **Script notepad**: clicking a video idea or any of its hooks opens an editor with an
+     empty notepad to write the script. All hooks of a video share the **same** script (the
+     video's) — they're the same video, only the hook line differs. Replaces the notes field.
 4. **Same-video visual marker**: each video has an identity color chip so duplicate-video
    hooks are obvious in the queue.
 5. New look: playful **neo-brutalist** — simple, minimalistic, fun, different.
@@ -57,10 +58,10 @@ Single state object, persisted to `localStorage`:
       pillarId,
       status,                         // 'Idea' | 'Scripted' | 'Filmed' | 'Edited' | 'Posted'
       refLink,                        // reference/inspiration URL (string, may be '')
-      script,                         // the video's script (free text, written in the notepad)
+      script,                         // the video's ONE shared script (written in the notepad)
       tagColorIdx,                    // video identity color index (VIDEO_COLORS)
       hooks: [
-        { id, text, posted, script }  // a hook = one posting variant; has its own script
+        { id, text, posted }          // a hook = one posting variant; shares the video script
       ]
     }
   ],
@@ -99,12 +100,17 @@ Add-video affordance at the bottom (idea + pillar + status), matching the origin
 
 ### Script editor
 
-A slide-over/modal opened by clicking a video idea or a hook. It contains:
-- An editable text field at the top — the video's idea (or the hook's text).
-- A large empty **notepad** textarea below for writing the script.
-- Edits save to the item's `script` (and to `idea`/hook `text`) on change/blur; close to dismiss.
+A slide-over/modal opened by clicking a video idea or any of its hooks. It always edits the
+**parent video's single `script`** — opening it from a hook shows the same shared script, not a
+separate one. It contains:
+- An editable text field at the top — the video's idea, or, when opened from a hook, that
+  hook's text (saved to `hook.text`).
+- A large **notepad** textarea below bound to the parent video's `script` (shared across all
+  its hooks).
+- Edits save on change/blur; close to dismiss.
 
-The same component serves both videos and hooks; it operates on whichever item is open.
+The component is opened with the target video plus an optional hook id (which sub-field to edit
+at the top); the notepad always maps to `video.script`.
 
 ### Queue view (global posting queue)
 
