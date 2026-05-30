@@ -12,6 +12,8 @@ function QueueRow({ entry, index, pillar, onMarkPosted }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: entry.key })
   const chip = VIDEO_COLORS[entry.tagColorIdx] || VIDEO_COLORS[0]
   const pc = pillar ? PILLAR_COLORS[pillar.colorIdx] || PILLAR_COLORS[0] : { bg: '#eee', text: '#555' }
+  // Hookless (virtual) entries reuse the video idea as the hook text — don't print it twice.
+  const showVideo = entry.videoIdea && entry.hookText !== entry.videoIdea
   return (
     <div
       ref={setNodeRef}
@@ -20,11 +22,23 @@ function QueueRow({ entry, index, pillar, onMarkPosted }) {
     >
       <span className="queue-num">{index + 1}</span>
       <button className="drag-handle" {...attributes} {...listeners} aria-label="Reorder">⠿</button>
-      <span className="video-chip" style={{ background: chip }}>{entry.videoIdea}</span>
-      <span className="queue-hook">{entry.hookText}</span>
-      <span className="tag" style={{ background: pc.bg, color: pc.text }}>{pillar ? pillar.name : '—'}</span>
-      <label className="queue-posted">
-        <input type="checkbox" onChange={() => onMarkPosted(entry)} /> posted
+      <div className="queue-body">
+        <p className="queue-hook">{entry.hookText}</p>
+        {(showVideo || pillar) && (
+          <div className="queue-meta">
+            {showVideo && (
+              <span className="queue-video">
+                <span className="queue-video-dot" style={{ background: chip }} />
+                {entry.videoIdea}
+              </span>
+            )}
+            {pillar && <span className="tag" style={{ background: pc.bg, color: pc.text }}>{pillar.name}</span>}
+          </div>
+        )}
+      </div>
+      <label className="queue-posted" title="Mark as posted">
+        <input type="checkbox" onChange={() => onMarkPosted(entry)} />
+        <span>posted</span>
       </label>
     </div>
   )
