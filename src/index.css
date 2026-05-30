@@ -95,12 +95,14 @@ body {
 .card-top { display: flex; align-items: center; gap: 7px; }
 .drag-handle { border: none; background: transparent; cursor: grab; font-size: 14px; color: var(--muted); padding: 0 2px; }
 .card-title {
-  flex: 1; text-align: left; border: none; background: transparent; cursor: pointer;
+  flex: 1; min-width: 0; text-align: left; border: none; background: transparent; cursor: pointer;
   font-size: 13.5px; font-weight: 600; color: var(--ink); padding: 3px 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .card-title:hover { text-decoration: underline; }
-.pillar-select { border-width: 1.5px; font-size: 11.5px; padding: 3px 7px; }
-.status-select { font-size: 11.5px; padding: 3px 7px; border-width: 1.5px; }
+.pillar-select { border-width: 1.5px; font-size: 11.5px; padding: 3px 7px; max-width: 120px; }
+.status-select { font-size: 11.5px; padding: 3px 7px; border-width: 1.5px; flex: none; }
+.card-top > .select { flex: 0 1 auto; min-width: 0; }
 .status-idea { background: #f0eee8; }
 .status-scripted { background: #cfe8ff; }
 .status-filmed { background: #e6d6ff; }
@@ -111,7 +113,7 @@ body {
 
 .card-ref { display: flex; align-items: center; gap: 7px; margin-top: 8px; }
 .card-ref-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
-.card-ref-input { flex: 1; padding: 4px 8px; font-size: 11.5px; }
+.card-ref-input { flex: 1; min-width: 0; padding: 4px 8px; font-size: 11.5px; }
 .ref-open { text-decoration: none; font-size: 14px; color: var(--ink); }
 
 .card-hooks-toggle {
@@ -132,7 +134,9 @@ body {
 
 /* Add row */
 .add-row { display: flex; gap: 7px; margin-top: 12px; align-items: center; }
-.add-idea { flex: 1; }
+.add-idea { flex: 1; min-width: 0; }
+.add-row .select { flex: 0 1 auto; min-width: 0; max-width: 130px; }
+.add-row .btn-primary { flex: none; }
 
 /* Archive */
 .archive { margin-top: 22px; }
@@ -141,20 +145,21 @@ body {
 .archive .card { margin-bottom: 10px; }
 
 /* Tags */
-.tag { padding: 2px 8px; border-radius: 999px; font-size: 10.5px; font-weight: 600; white-space: nowrap; }
-.video-chip { padding: 2px 8px; border-radius: 6px; font-size: 10.5px; font-weight: 700; color: #fff; border: 1.5px solid var(--ink); white-space: nowrap; }
+.tag { padding: 2px 8px; border-radius: 999px; font-size: 10.5px; font-weight: 600; white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+.video-chip { padding: 2px 8px; border-radius: 6px; font-size: 10.5px; font-weight: 700; color: #fff; border: 1.5px solid var(--ink); white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
 
 /* Queue */
 .queue { display: flex; flex-direction: column; gap: 8px; }
 .queue-row {
-  display: flex; align-items: center; gap: 9px;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px 9px;
   background: var(--surface); border: 1.5px solid var(--ink); border-left-width: 5px;
   border-radius: var(--radius); box-shadow: var(--shadow-sm); padding: 8px 10px;
 }
 .queue-row--dragging { opacity: .85; }
-.queue-num { font-size: 12px; font-weight: 700; width: 20px; text-align: center; }
-.queue-hook { flex: 1; font-size: 12.5px; }
-.queue-posted { font-size: 10.5px; color: var(--muted); display: flex; align-items: center; gap: 4px; cursor: pointer; }
+.queue-num { flex: none; font-size: 12px; font-weight: 700; width: 20px; text-align: center; }
+.queue-row .drag-handle { flex: none; }
+.queue-hook { flex: 1 1 130px; min-width: 0; font-size: 12.5px; overflow-wrap: break-word; }
+.queue-posted { flex: none; white-space: nowrap; font-size: 10.5px; color: var(--muted); display: flex; align-items: center; gap: 4px; cursor: pointer; }
 .empty { text-align: center; color: var(--muted); padding: 40px 16px; font-size: 13px; }
 
 /* Script editor slide-over */
@@ -176,7 +181,7 @@ body {
 .pillar-manage-list { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; }
 .pillar-manage-row { display: flex; align-items: center; gap: 9px; }
 .swatch { width: 14px; height: 14px; border-radius: 4px; border: 1.5px solid var(--ink); }
-.grow { flex: 1; font-size: 12.5px; }
+.grow { flex: 1; min-width: 0; font-size: 12.5px; }
 .swatch-row { display: flex; gap: 7px; flex-wrap: wrap; margin: 9px 0; }
 .swatch-btn { width: 24px; height: 24px; border-radius: 6px; border: 1.5px solid var(--ink); cursor: pointer; }
 .swatch-btn.selected { box-shadow: var(--shadow-sm); transform: translate(-1px, -1px); }
