@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { useAppState } from './hooks/useAppState.js'
-import AuthGate from './components/AuthGate.jsx'
 import {
   DndContext, PointerSensor, KeyboardSensor, closestCenter, useSensor, useSensors,
 } from '@dnd-kit/core'
@@ -58,7 +57,10 @@ function AddVideoRow({ pillars, onAdd }) {
 }
 
 export default function App() {
-  const { state, setState, session, loading, error, signIn, signOut, hasSupabase } = useAppState()
+  // Local-only for now: the app is open by default and persists to localStorage.
+  // The Supabase/login path in useAppState stays dormant (inert without config)
+  // so it can be wired up later without reworking this component.
+  const { state, setState } = useAppState()
   const [editorVideoId, setEditorVideoId] = useState(null) // video id whose script is open, or null
   const [showPillars, setShowPillars] = useState(false)
   const [archiveOpen, setArchiveOpen] = useState(false)
@@ -191,17 +193,6 @@ export default function App() {
 
   return (
     <div className="app">
-      <AuthGate
-        loading={loading}
-        hasSupabase={hasSupabase}
-        session={session}
-        error={error}
-        onSignIn={signIn}
-        onSignOut={signOut}
-        locked={locked}
-        onUnlock={unlock}
-        unlockError={unlockError}
-      />
       <Header
         pillars={state.pillars}
         filter={state.filter}
