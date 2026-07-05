@@ -31,5 +31,11 @@ export function seed() {
     { id: uid(), idea: 'life comes in waves', pillarId: 'p4', status: 'Scripted', refLink: '', script: '', tagColorIdx: 3, hooks: [] },
     { id: uid(), idea: 'Cleaning Desk', pillarId: 'p1', status: 'Posted', refLink: '', script: '', tagColorIdx: 4, hooks: [] },
   ]
-  return { pillars, videos, postingOrder: [], filter: 'all' }
+  return {
+    pillars,
+    videos,
+    postingOrder: [],
+    filter: 'all',
+    deployedUrl: '',
+  }
 }

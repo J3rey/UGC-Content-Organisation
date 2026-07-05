@@ -2,11 +2,21 @@ import { PILLAR_COLORS } from '../constants/index.js'
 
 export default function Header({
   pillars, filter, setFilter,
+  deployedUrl, onChangeDeployedUrl,
   onManagePillars, onExport, onImport,
 }) {
   return (
     <header className="app-header">
       <div className="brand">CONTENT</div>
+
+      <div className="deployed-link">
+        <input
+          className="input deployed-url"
+          placeholder="Vercel deployed link"
+          value={deployedUrl || ''}
+          onChange={e => onChangeDeployedUrl(e.target.value)}
+        />
+      </div>
 
       <div className="filters">
         <button className={'chip' + (filter === 'all' ? ' active' : '')} onClick={() => setFilter('all')}>all</button>

@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react'
+import { useAppState } from './hooks/useAppState.js'
+import AuthGate from './components/AuthGate.jsx'
 import {
   DndContext, PointerSensor, KeyboardSensor, closestCenter, useSensor, useSensors,
 } from '@dnd-kit/core'
 import {
   SortableContext, useSortable, arrayMove, sortableKeyboardCoordinates, verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
-import { useLocalState } from './hooks/useLocalState.js'
 import { newVideo, newHook, newPillar, assignVideoColor } from './state/contentModel.js'
 import { exportToFile, importFromFile } from './state/storage.js'
 import { STATUSES } from './constants/index.js'
@@ -57,7 +58,7 @@ function AddVideoRow({ pillars, onAdd }) {
 }
 
 export default function App() {
-  const [state, setState] = useLocalState()
+  const { state, setState, session, loading, error, signIn, signOut, hasSupabase } = useAppState()
   const [editorVideoId, setEditorVideoId] = useState(null) // video id whose script is open, or null
   const [showPillars, setShowPillars] = useState(false)
   const [archiveOpen, setArchiveOpen] = useState(false)
@@ -163,7 +164,11 @@ export default function App() {
       if (!data || !Array.isArray(data.videos) || !Array.isArray(data.pillars)) {
         throw new Error('Not a valid backup file')
       }
-      if (confirm('Replace all current data with the imported file?')) setState(data)
+      const normalized = {
+        deployedUrl: '',
+        ...data,
+      }
+      if (confirm('Replace all current data with the imported file?')) setState(normalized)
     } catch (e) {
       alert(e.message)
     }
@@ -186,9 +191,22 @@ export default function App() {
 
   return (
     <div className="app">
+      <AuthGate
+        loading={loading}
+        hasSupabase={hasSupabase}
+        session={session}
+        error={error}
+        onSignIn={signIn}
+        onSignOut={signOut}
+        locked={locked}
+        onUnlock={unlock}
+        unlockError={unlockError}
+      />
       <Header
         pillars={state.pillars}
         filter={state.filter}
+        deployedUrl={state.deployedUrl}
+        onChangeDeployedUrl={val => setState(s => ({ ...s, deployedUrl: val }))}
         setFilter={f => setState(s => ({ ...s, filter: f }))}
         onManagePillars={() => setShowPillars(true)}
         onExport={() => exportToFile(state)}
