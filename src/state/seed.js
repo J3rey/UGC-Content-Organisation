@@ -36,6 +36,5 @@ export function seed() {
     videos,
     postingOrder: [],
     filter: 'all',
-    deployedUrl: '',
   }
 }

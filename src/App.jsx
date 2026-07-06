@@ -57,10 +57,9 @@ function AddVideoRow({ pillars, onAdd }) {
 }
 
 export default function App() {
-  // Local-only for now: the app is open by default and persists to localStorage.
-  // The Supabase/login path in useAppState stays dormant (inert without config)
-  // so it can be wired up later without reworking this component.
-  const { state, setState } = useAppState()
+  // The dashboard is open by default and persists to localStorage. Signing in
+  // (top-right) switches storage to Supabase; see useAppState for the wiring.
+  const { state, setState, session, loading, signIn, signOut } = useAppState()
   const [editorVideoId, setEditorVideoId] = useState(null) // video id whose script is open, or null
   const [showPillars, setShowPillars] = useState(false)
   const [archiveOpen, setArchiveOpen] = useState(false)
@@ -166,11 +165,7 @@ export default function App() {
       if (!data || !Array.isArray(data.videos) || !Array.isArray(data.pillars)) {
         throw new Error('Not a valid backup file')
       }
-      const normalized = {
-        deployedUrl: '',
-        ...data,
-      }
-      if (confirm('Replace all current data with the imported file?')) setState(normalized)
+      if (confirm('Replace all current data with the imported file?')) setState(data)
     } catch (e) {
       alert(e.message)
     }
@@ -196,12 +191,11 @@ export default function App() {
       <Header
         pillars={state.pillars}
         filter={state.filter}
-        deployedUrl={state.deployedUrl}
-        onChangeDeployedUrl={val => setState(s => ({ ...s, deployedUrl: val }))}
         setFilter={f => setState(s => ({ ...s, filter: f }))}
         onManagePillars={() => setShowPillars(true)}
         onExport={() => exportToFile(state)}
         onImport={handleImport}
+        auth={{ session, loading, signIn, signOut }}
       />
 
       <main className="page">

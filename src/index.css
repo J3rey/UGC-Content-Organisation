@@ -74,6 +74,22 @@ body {
   .queue-col { position: static; }
 }
 
+/* Sign-in widget (header, top-right) */
+.auth-widget {
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+}
+.auth-input { padding: 5px 9px; font-size: 12px; width: 128px; max-width: 40vw; }
+.auth-signed-in { color: var(--ink-soft); font-size: 12px; }
+.auth-email {
+  max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-weight: 600;
+}
+.auth-muted { color: var(--muted); font-size: 12px; }
+.auth-error {
+  color: var(--danger); font-size: 11px; max-width: 200px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
 /* Header */
 .app-header {
   display: flex; align-items: center; gap: 10px; flex-wrap: wrap;

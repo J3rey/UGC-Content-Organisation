@@ -1,33 +1,58 @@
-export default function AuthGate({ loading, hasSupabase, session, error, onSignIn, onSignOut, locked, onUnlock, unlockError }) {
-  if (loading) {
-    return <div className="auth-gate">Loading secure workspace…</div>
-  }
+import { useState } from 'react'
 
-  if (locked) {
-    return (
-      <form
-        className="auth-gate auth-form"
-        onSubmit={e => {
-          e.preventDefault()
-          const form = new FormData(e.currentTarget)
-          onUnlock(String(form.get('password') || ''))
-        }}
-      >
-        <input className="input" name="password" type="password" placeholder="Local password" />
-        <button className="btn btn-primary" type="submit">Unlock</button>
-        {unlockError ? <div className="error">{unlockError}</div> : <div className="hint">Private local-only gate.</div>}
-      </form>
-    )
-  }
+// Compact sign-in widget for the header's top-right. The app is usable without
+// signing in (localStorage); signing in switches storage to Supabase.
+export default function AuthGate({ loading, session, signIn, signOut }) {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
 
-  if (hasSupabase && session?.user) {
+  if (loading) return <div className="auth-widget auth-muted">…</div>
+
+  if (session?.user) {
     return (
-      <div className="auth-gate auth-gate-inline">
-        <span>Signed in as {session.user.email}</span>
-        <button className="btn" onClick={onSignOut}>sign out</button>
+      <div className="auth-widget auth-signed-in">
+        <span className="auth-email" title={session.user.email}>{session.user.email}</span>
+        <button className="btn btn-mini" onClick={signOut}>sign out</button>
       </div>
     )
   }
 
-  return null
+  async function submit(e) {
+    e.preventDefault()
+    setError('')
+    setBusy(true)
+    try {
+      await signIn(email.trim(), password)
+      setPassword('')
+    } catch (err) {
+      setError(err?.message || 'Sign in failed')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <form className="auth-widget" onSubmit={submit}>
+      <input
+        className="input auth-input"
+        type="email"
+        placeholder="email"
+        value={email}
+        onChange={e => setEmail(e.target.value)}
+      />
+      <input
+        className="input auth-input"
+        type="password"
+        placeholder="password"
+        value={password}
+        onChange={e => setPassword(e.target.value)}
+      />
+      <button className="btn btn-mini" type="submit" disabled={busy}>
+        {busy ? '…' : 'sign in'}
+      </button>
+      {error && <span className="auth-error" title={error}>{error}</span>}
+    </form>
+  )
 }

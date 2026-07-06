@@ -1,22 +1,13 @@
 import { PILLAR_COLORS } from '../constants/index.js'
+import AuthGate from './AuthGate.jsx'
 
 export default function Header({
   pillars, filter, setFilter,
-  deployedUrl, onChangeDeployedUrl,
-  onManagePillars, onExport, onImport,
+  onManagePillars, onExport, onImport, auth,
 }) {
   return (
     <header className="app-header">
       <div className="brand">CONTENT</div>
-
-      <div className="deployed-link">
-        <input
-          className="input deployed-url"
-          placeholder="Vercel deployed link"
-          value={deployedUrl || ''}
-          onChange={e => onChangeDeployedUrl(e.target.value)}
-        />
-      </div>
 
       <div className="filters">
         <button className={'chip' + (filter === 'all' ? ' active' : '')} onClick={() => setFilter('all')}>all</button>
@@ -47,6 +38,8 @@ export default function Header({
           />
         </label>
       </div>
+
+      <AuthGate {...auth} />
     </header>
   )
 }

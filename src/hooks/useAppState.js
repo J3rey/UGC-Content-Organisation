@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react'
-import { supabase, LOCAL_LOGIN_PASSWORD } from '../state/supabase.js'
+import { supabase } from '../state/supabase.js'
 import { load, save } from '../state/storage.js'
 import { seed } from '../state/seed.js'
 
 const DEFAULT_STATE = seed()
-const LOCK_KEY = 'content-dashboard-locked'
 
 export function useAppState() {
   const [state, setState] = useState(() => {
@@ -14,8 +13,6 @@ export function useAppState() {
   const [session, setSession] = useState(null)
   const [loading, setLoading] = useState(Boolean(supabase))
   const [error, setError] = useState('')
-  const [unlockError, setUnlockError] = useState('')
-  const [locked, setLocked] = useState(() => localStorage.getItem(LOCK_KEY) !== 'unlocked')
 
   useEffect(() => {
     if (!supabase) {
@@ -58,8 +55,9 @@ export function useAppState() {
         setError(fetchError.message)
         return
       }
+      // First sign-in with no cloud snapshot yet: keep whatever is on screen so
+      // the save effect seeds the cloud from it, rather than wiping to defaults.
       if (data?.payload) setState(data.payload)
-      else setState(DEFAULT_STATE)
     }
     loadRemote()
   }, [session?.user?.id])
@@ -75,15 +73,5 @@ export function useAppState() {
     await supabase.auth.signOut()
   }
 
-  async function unlock(password) {
-    if (password === LOCAL_LOGIN_PASSWORD) {
-      localStorage.setItem(LOCK_KEY, 'unlocked')
-      setLocked(false)
-      setUnlockError('')
-      return
-    }
-    setUnlockError('Wrong password')
-  }
-
-  return { state, setState, session, loading, error, signIn, signOut, hasSupabase: Boolean(supabase), locked, unlock, unlockError }
+  return { state, setState, session, loading, error, signIn, signOut, hasSupabase: Boolean(supabase) }
 }
