@@ -3,7 +3,7 @@ import { useState } from 'react'
 // Compact sign-in widget for the header's top-right. The app is usable without
 // signing in (localStorage); signing in with the local admin credentials
 // switches storage to the shared Supabase cloud row.
-export default function AuthGate({ signedIn, signIn, signOut }) {
+export default function AuthGate({ signedIn, signIn, signOut, error: syncError }) {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -12,6 +12,7 @@ export default function AuthGate({ signedIn, signIn, signOut }) {
     return (
       <div className="auth-widget auth-signed-in">
         <span className="auth-email">signed in</span>
+        {syncError && <span className="auth-error" title={syncError}>⚠ sync: {syncError}</span>}
         <button className="btn btn-mini" onClick={signOut}>sign out</button>
       </div>
     )

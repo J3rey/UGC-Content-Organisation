@@ -60,7 +60,7 @@ export default function App() {
   // The dashboard is open by default and persists to localStorage. Signing in
   // (top-right) with the local admin credentials switches storage to a shared
   // Supabase row; see useAppState for the wiring.
-  const { state, setState, signedIn, signIn, signOut } = useAppState()
+  const { state, setState, signedIn, signIn, signOut, error } = useAppState()
   const [editorVideoId, setEditorVideoId] = useState(null) // video id whose script is open, or null
   const [showPillars, setShowPillars] = useState(false)
   const [archiveOpen, setArchiveOpen] = useState(false)
@@ -196,7 +196,7 @@ export default function App() {
         onManagePillars={() => setShowPillars(true)}
         onExport={() => exportToFile(state)}
         onImport={handleImport}
-        auth={{ signedIn, signIn, signOut }}
+        auth={{ signedIn, signIn, signOut, error }}
       />
 
       <main className="page">
