@@ -1,6 +1,6 @@
 # Content Creation Dashboard
 
-Standalone Vite + React app for planning short-form video content. Open by default — no login required; state persists to localStorage. An optional email/password sign-in lives top-right in the header (`AuthGate.jsx`); signing in switches storage from localStorage to Supabase (`useAppState.js` upserts/loads a per-user row in `dashboard_snapshots`). Supabase is inert unless `VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY` are set (in `.env` locally and in Vercel) — until then the sign-in field shows but errors on submit.
+Standalone Vite + React app for planning short-form video content. Open by default — no login required; state persists to localStorage. A simple local login (username/password, default `admin`/`Potato01`, overridable via `VITE_LOCAL_LOGIN_USERNAME`/`VITE_LOCAL_LOGIN_PASSWORD`) sits top-right in the header (`AuthGate.jsx`). Signing in switches storage from localStorage to Supabase: `useAppState.js` upserts/loads one shared row in `dashboard_snapshots` keyed `local:<username>` (no per-user Supabase accounts — the anon key + local gate is the only auth). Requires `VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY` (`.env` locally and in Vercel); without them sign-in still gates but data stays in localStorage.
 
 ## State shape
 

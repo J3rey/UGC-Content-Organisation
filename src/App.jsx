@@ -58,8 +58,9 @@ function AddVideoRow({ pillars, onAdd }) {
 
 export default function App() {
   // The dashboard is open by default and persists to localStorage. Signing in
-  // (top-right) switches storage to Supabase; see useAppState for the wiring.
-  const { state, setState, session, loading, signIn, signOut } = useAppState()
+  // (top-right) with the local admin credentials switches storage to a shared
+  // Supabase row; see useAppState for the wiring.
+  const { state, setState, signedIn, signIn, signOut } = useAppState()
   const [editorVideoId, setEditorVideoId] = useState(null) // video id whose script is open, or null
   const [showPillars, setShowPillars] = useState(false)
   const [archiveOpen, setArchiveOpen] = useState(false)
@@ -195,7 +196,7 @@ export default function App() {
         onManagePillars={() => setShowPillars(true)}
         onExport={() => exportToFile(state)}
         onImport={handleImport}
-        auth={{ session, loading, signIn, signOut }}
+        auth={{ signedIn, signIn, signOut }}
       />
 
       <main className="page">

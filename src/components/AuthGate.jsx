@@ -1,35 +1,30 @@
 import { useState } from 'react'
 
 // Compact sign-in widget for the header's top-right. The app is usable without
-// signing in (localStorage); signing in switches storage to Supabase.
-export default function AuthGate({ loading, session, signIn, signOut }) {
-  const [email, setEmail] = useState('')
+// signing in (localStorage); signing in with the local admin credentials
+// switches storage to the shared Supabase cloud row.
+export default function AuthGate({ signedIn, signIn, signOut }) {
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
-  const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
 
-  if (loading) return <div className="auth-widget auth-muted">…</div>
-
-  if (session?.user) {
+  if (signedIn) {
     return (
       <div className="auth-widget auth-signed-in">
-        <span className="auth-email" title={session.user.email}>{session.user.email}</span>
+        <span className="auth-email">signed in</span>
         <button className="btn btn-mini" onClick={signOut}>sign out</button>
       </div>
     )
   }
 
-  async function submit(e) {
+  function submit(e) {
     e.preventDefault()
-    setError('')
-    setBusy(true)
     try {
-      await signIn(email.trim(), password)
+      signIn(username.trim(), password)
       setPassword('')
+      setError('')
     } catch (err) {
       setError(err?.message || 'Sign in failed')
-    } finally {
-      setBusy(false)
     }
   }
 
@@ -37,10 +32,9 @@ export default function AuthGate({ loading, session, signIn, signOut }) {
     <form className="auth-widget" onSubmit={submit}>
       <input
         className="input auth-input"
-        type="email"
-        placeholder="email"
-        value={email}
-        onChange={e => setEmail(e.target.value)}
+        placeholder="username"
+        value={username}
+        onChange={e => setUsername(e.target.value)}
       />
       <input
         className="input auth-input"
@@ -49,9 +43,7 @@ export default function AuthGate({ loading, session, signIn, signOut }) {
         value={password}
         onChange={e => setPassword(e.target.value)}
       />
-      <button className="btn btn-mini" type="submit" disabled={busy}>
-        {busy ? '…' : 'sign in'}
-      </button>
+      <button className="btn btn-mini" type="submit">sign in</button>
       {error && <span className="auth-error" title={error}>{error}</span>}
     </form>
   )
