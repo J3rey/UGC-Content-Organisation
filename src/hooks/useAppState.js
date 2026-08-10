@@ -24,9 +24,19 @@ export function useAppState() {
   const latestRef = useRef(state)
   // Last snapshot the cloud is known to hold, compared by reference.
   const savedRef = useRef(null)
+  // That row's updated_at — the compare-and-set token that stops this tab from
+  // overwriting a newer save made by another tab or device.
+  const savedAtRef = useRef(null)
   // Only one write may be in flight: concurrent upserts can commit out of
   // order, which is how newer edits used to get overwritten by older ones.
   const writingRef = useRef(false)
+
+  // Stops all further cloud writes: someone else has saved over the row this
+  // tab loaded, so anything we write from here would delete their work.
+  function stopOnConflict() {
+    hydratedRef.current = false
+    setError('another tab or device saved newer data — reload the page to catch up (edits here are staying on this device)')
+  }
 
   // Writes the newest state, then re-checks — so edits made during a write are
   // never dropped, and the last write always carries the newest snapshot.
@@ -36,14 +46,37 @@ export function useAppState() {
     try {
       while (latestRef.current !== savedRef.current) {
         const snapshot = latestRef.current
-        const { error: upsertError } = await supabase
-          .from('dashboard_snapshots')
-          .upsert({ source_key: SNAPSHOT_KEY, payload: snapshot }, { onConflict: 'source_key' })
-        if (upsertError) {
-          setError(upsertError.message)
-          return
+        const stamp = new Date().toISOString()
+        if (savedAtRef.current === null) {
+          // No row yet. A duplicate-key error means another tab just made one.
+          const { error: insertError } = await supabase
+            .from('dashboard_snapshots')
+            .insert({ source_key: SNAPSHOT_KEY, payload: snapshot, updated_at: stamp })
+          if (insertError) {
+            if (insertError.code === '23505') stopOnConflict()
+            else setError(insertError.message)
+            return
+          }
+        } else {
+          // Only overwrite the exact row version this tab last saw.
+          const { data, error: updateError } = await supabase
+            .from('dashboard_snapshots')
+            .update({ payload: snapshot, updated_at: stamp })
+            .eq('source_key', SNAPSHOT_KEY)
+            .eq('updated_at', savedAtRef.current)
+            .select('source_key')
+            .maybeSingle()
+          if (updateError) {
+            setError(updateError.message)
+            return
+          }
+          if (!data) {
+            stopOnConflict()
+            return
+          }
         }
         savedRef.current = snapshot
+        savedAtRef.current = stamp
         setError('')
       }
     } finally {
@@ -56,6 +89,7 @@ export function useAppState() {
     if (!signedIn || !supabase) {
       hydratedRef.current = true
       savedRef.current = null
+      savedAtRef.current = null
       return
     }
     hydratedRef.current = false
@@ -64,7 +98,7 @@ export function useAppState() {
     ;(async () => {
       const { data, error: fetchError } = await supabase
         .from('dashboard_snapshots')
-        .select('payload')
+        .select('payload, updated_at')
         .eq('source_key', SNAPSHOT_KEY)
         .maybeSingle()
       if (cancelled) return
@@ -76,6 +110,7 @@ export function useAppState() {
       }
       if (data?.payload) {
         savedRef.current = data.payload
+        savedAtRef.current = data.updated_at
         // Don't discard edits made while the read was in flight.
         if (latestRef.current === before) setState(data.payload)
       }
@@ -101,17 +136,21 @@ export function useAppState() {
   useEffect(() => {
     if (!signedIn || !supabase) return
     function onPageHide() {
-      if (!hydratedRef.current || latestRef.current === savedRef.current) return
-      fetch(`${SUPABASE_URL}/rest/v1/dashboard_snapshots?on_conflict=source_key`, {
-        method: 'POST',
+      // Without a known row version there is nothing safe to overwrite.
+      if (!hydratedRef.current || !savedAtRef.current) return
+      if (latestRef.current === savedRef.current) return
+      const query = `source_key=eq.${encodeURIComponent(SNAPSHOT_KEY)}`
+        + `&updated_at=eq.${encodeURIComponent(savedAtRef.current)}`
+      fetch(`${SUPABASE_URL}/rest/v1/dashboard_snapshots?${query}`, {
+        method: 'PATCH',
         keepalive: true,
         headers: {
           apikey: SUPABASE_ANON_KEY,
           Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
           'Content-Type': 'application/json',
-          Prefer: 'resolution=merge-duplicates,return=minimal',
+          Prefer: 'return=minimal',
         },
-        body: JSON.stringify({ source_key: SNAPSHOT_KEY, payload: latestRef.current }),
+        body: JSON.stringify({ payload: latestRef.current, updated_at: new Date().toISOString() }),
       }).catch(() => {})
     }
     window.addEventListener('pagehide', onPageHide)
@@ -132,6 +171,7 @@ export function useAppState() {
     localStorage.removeItem(SIGNED_IN_KEY)
     hydratedRef.current = false
     savedRef.current = null
+    savedAtRef.current = null
     setSignedIn(false)
   }
 
